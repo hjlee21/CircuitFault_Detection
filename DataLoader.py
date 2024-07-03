@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 
-class DataLoader:
+class Data_Loader:
     def __init__(self, train_dir, val_dir, test_dir, input_cols):
         self.train_dir = train_dir
         self.val_dir = val_dir
@@ -42,5 +42,5 @@ if __name__ == "__main__":
 
     input_cols = ['V2', 'V8', 'V10']
 
-    data_loader = DataLoader(train_dir=train_dir, val_dir=val_dir, test_dir=test_dir, input_cols=input_cols)
+    data_loader = Data_Loader(train_dir=train_dir, val_dir=val_dir, test_dir=test_dir, input_cols=input_cols)
     x_train, y_train, x_val, y_val, x_test, y_test = data_loader.load_data()
