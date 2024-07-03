@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import tensorflow as tf
 import numpy as np
+
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import Adam
@@ -9,17 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 
-
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-    try:
-        for gpu in gpus:
-            tf.config.experimental.list_physical_devices(gpu, True)
-        tf.config.experimental.set_visible_devices(gpus[0], 'GPU')
-    except RuntimeError as e:
-        print(e)
-print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
-            
+           
 class DataLoader:
     def __init__(self, train_dir, val_dir, test_dir, input_cols):
         self.train_dir = train_dir
@@ -68,7 +59,7 @@ class DNN_Model:
         ])
         return model
     
-    def train(self, x_train, y_train, x_val, y_val, epochs = 600, batch_size=128):
+    def train(self, x_train, y_train, x_val, y_val, epochs = 500, batch_size=512):
         history = self.model.fit(x_train, y_train,
                                  epochs = epochs,
                                  batch_size=batch_size,
@@ -134,7 +125,7 @@ loss, accuracy = dnn_model.evaluate(x_test=x_test, y_test=y_test)
 print(f'Test accuracy = {accuracy * 100:.2f} %')
 
 #=========================================== Train and Evaluate model
-serial_no = 2
+serial_no = 3
 model_path = f"./DNN/dnn{serial_no}"
 if not os.path.exists(model_path):
     os.makedirs(model_path)
