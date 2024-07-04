@@ -10,6 +10,10 @@ from torch.utils.data import DataLoader, TensorDataset, random_split
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 
+class CustomDataset(Dataset):
+    def __init__(self, data_folder, input_cols, sequence_length, minmaxscaler=None):
+        self.call_generate_minmax = False if min
+
 class LSTM_Model(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, num_classes):
         super(LSTM_Model, self).__init__()
@@ -57,6 +61,7 @@ class Trainer:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 # print(f'inputs  = {inputs}')
                 # print(f'labels  = {labels}')
+                print(f'labels.shape = {labels.shape}')
 
                 self.optimizer.zero_grad()
                 outputs = self.model(inputs)
