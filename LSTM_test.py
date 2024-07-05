@@ -4,15 +4,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
 
 from DataLoader import Data_Loader
 from torch.utils.data import DataLoader, TensorDataset, random_split
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 
-class CustomDataset(Dataset):
-    def __init__(self, data_folder, input_cols, sequence_length, minmaxscaler=None):
-        self.call_generate_minmax = False if min
+
 
 class LSTM_Model(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, num_classes):
