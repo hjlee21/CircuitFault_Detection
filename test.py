@@ -44,5 +44,29 @@ class LSTM_Model(nn.Module):
         # out -> [2, 4]
         return out
 
+# ===========================================================================================
+# Run
+# ===========================================================================================
+input_cols = ['V2', 'V8', 'V10']
+print("Loading 'train_db'--------------------------------------------------------------------")
+train_db = create_data_loader('./Data/data_training', input_cols, 10)
+print("Loading 'test_db'---------------------------------------------------------------------")
+test_db = create_data_loader('./Data/data_test', input_cols, 10)
+print("Loading 'validation_db'---------------------------------------------------------------")
+validation_db = create_data_loader('./Data/data_validation', input_cols, 10)
 
-model.train()
+# 데이터 로더에서 하나의 배치를 가져옴
+data_iter = iter(train_db)
+sample_data, sample_label = next(data_iter)
+# sample_data  : torch.size([2, 10, 3])
+# sample_label : torch.size([2, 1])
+
+num_classes = 4
+input_dim = 3  # Number of features in the input sequence
+hidden_dim = 128
+output_dim = num_classes
+num_layers = 3
+model = LSTM_Model(input_dim, hidden_dim, output_dim, num_layers)
+
+
+model = 
