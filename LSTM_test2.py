@@ -21,7 +21,9 @@ class LSTM_Model(nn.Module):
         self.num_layers = num_layers
 
         # setup LSTM layer
-        self.lstm = nn.LSTM(input_dim, self.hidden_dim, self.num_layers)
+        self.lstm = nn.LSTM(input_dim, self.hidden_dim, self.num_layers, batch_first = True)
+        # batch_first = True -> (batch_size, sequence_length, input_dim)
+        # batch_first = False -> (sequence_length, batch_size, input_dim)
 
         # setup output layer
         self.fc = nn.Linear(self.hidden_dim, output_dim)
@@ -29,13 +31,28 @@ class LSTM_Model(nn.Module):
     def forward(self, x):
         h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_dim).to(x.device) #Initialize hidden h0
         c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_dim).to(x.device) #Initialize cell c0
-        print(f'h0.size: {h0.size}  c0.size: {c0.size}')
+        # h0.size: torch.Size([3, 2, 128]),  c0.size: torch.Size([3, 2, 128])
         
         # LSTM에 입력데이터 전달하고, 출력 및 새로운 은닉상태 받기
         out, _ = self.lstm(x, (h0, c0))
-        # 최종 타임스텝의 출력 사용하여 최종예측을 위해 Linear 에 전달
-        out = self.fc(out[:, -1, :])
+        # out -> torch.Size([2, 10, 128])
+        # _[0] -> torch.Size([3, 2, 128])
+        # _[1] -> torch.Size([3, 2, 128])
+
+        # out[:, -1, :] -> [2, 128]
+        out = self.fc(out[:, -1, :]) #sequence length의 최종끝단
+        # out -> [2, 4]
         return out
+
+def train_model(train_db, num_epochs = 50):
+    model.train()
+
+    for epoch in range(num_epochs):
+        running_loss = 0.0
+        for inputs, labels in train_db:
+            pass
+
+
 
 
 # ===========================================================================================
@@ -56,11 +73,11 @@ sample_data, sample_label = next(data_iter)
 # sample_label : torch.size([2, 1])
 
 num_classes = 4
-input_dim = 10  # Number of features in the input sequence
+input_dim = 3  # Number of features in the input sequence
 hidden_dim = 128
+output_dim = num_classes
 num_layers = 3
-model = LSTM_Model(input_dim, hidden_dim, num_layers, num_classes)
+model = LSTM_Model(input_dim, hidden_dim, output_dim, num_layers)
 
-# # Print the model
-# print(model)
+test= model.forward(sample_data)
 
