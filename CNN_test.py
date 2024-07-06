@@ -45,13 +45,30 @@ class TimeSeriesCNN(nn.Module):
         return out
 
 class ModelTrainer:
-    def __init__(self, model, train_db, val_db=None):
+    def __init__(self, model, train_db, val_db=None, save_path=None, serial_no=1, 
+                 batch_size=10, sequence_length=10):
         self.model = model
         self.train_db = train_db
         self.val_db = val_db
+        self.save_path = save_path
+        self.serial_no = serial_no
+        self.batch_size = batch_size
+        self.sequence_length = sequence_length
         self.history = {'loss': [], 'val_loss': [], 'accuracy': [], 'val_accuracy': []}
 
     def train_model(self, num_epochs = 50, learning_rate = 0.001):
+        # Model Save
+        model_path = f'{self.save_path}/CNN{self.serial_no}'
+        if not os.path.exists(model_path):
+            os.makedirs(model_path)
+        # Result PNG
+        plot_path = f'{self.save_path}/training_result/CNN{self.serial_no}.png'
+        if not os.path.exists(os.path.dirname(plot_path)):
+            os.makedirs(os.path.dirname(plot_path))
+        
+        
+        self.log_training_info(self.serial_no, self.batch_size, self.sequence_length, num_epochs, learning_rate)
+        self.log_training_history(new=True)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 
@@ -87,12 +104,44 @@ class ModelTrainer:
                 self.history['val_loss'].append(val_loss)
                 self.history['val_accuracy'].append(val_acc)
 
-            print(f'Epoch [{epoch+1} / {num_epochs}],   Loss: {epoch_loss:.4f},    Accuracy: {epoch_acc:.4f}')
+            Epoch = f'[{epoch+1} / {num_epochs}]'
+            
+            print(f'Epoch {Epoch},   Loss: {epoch_loss:.4f},    Accuracy: {epoch_acc:.4f}')
 
             if self.val_db:
                 print(f'Validation Loss: {val_loss:.4f}, Validation Accuracy: {val_acc:.4f}')
+                self.log_training_history(Epoch=Epoch, epoch_loss=epoch_loss, epoch_acc=epoch_acc, val_loss=val_loss, val_acc=val_acc)
+            else:
+                self.log_training_history(Epoch=Epoch, epoch_loss=epoch_loss, epoch_acc=epoch_acc)
+
+        # Model Save
+        trainer.save_model(model_path=f'{model_path}/model.pth')
+        # Result PNG
+        trainer.plot_history(save_path=plot_path)
 
         print('Training Complete')
+    
+    def log_training_history(self, new=False, Epoch=0, epoch_loss=0, epoch_acc=0, val_loss=0, val_acc=0):
+        if new:
+            with open(f'{self.save_path}/training_result/CNN{self.serial_no}_training_history.txt', 'w') as f:
+                if self.val_db:
+                    f.write(f'Epoch,epoch_loss,epoch_acc,val_loss,val_acc\n')
+                else:
+                    f.write(f'Epoch,epoch_loss,epoch_acc\n')
+        else:
+            with open(f'{self.save_path}/training_result/CNN{self.serial_no}_training_history.txt', 'a') as f:
+                if self.val_db:
+                    f.write(f'{Epoch},{epoch_loss},{epoch_acc},{val_loss},{val_acc}\n')
+                else:
+                    f.write(f'{Epoch},{epoch_loss},{epoch_acc}\n')
+
+    def log_training_info(self, serial_no, batch_size, sequence_length, num_epochs, learning_rate):
+        with open(f'{self.save_path}/training_result/CNN{self.serial_no}_training_info.txt', 'w') as f:
+            f.write(f'serial_no:{serial_no}\n')
+            f.write(f'batch_size:{batch_size}\n')
+            f.write(f'sequence_length:{sequence_length}\n')
+            f.write(f'num_epochs:{num_epochs}\n')
+            f.write(f'learning_rate:{learning_rate}\n')
     
     def evaluate_model(self):
         self.model.eval()
@@ -119,7 +168,7 @@ class ModelTrainer:
         val_acc = correct / total
         return val_loss, val_acc
     
-    def plot_history(self, save_path=None):
+    def plot_history(self):
         plt.figure(figsize=(12,4))
 
         plt.subplot(1,2,1)
@@ -143,8 +192,8 @@ class ModelTrainer:
         plt.legend()
         plt.title('Training and Validation Loss')
 
-        if save_path:
-            plt.savefig(save_path)
+        if self.save_path:
+            plt.savefig(self.save_path)
 
         plt.show()
     
@@ -161,40 +210,20 @@ def check_gpu_usage():
 # ===========================================================================================
 # Run
 # ===========================================================================================
+serial_no = 1
 input_cols = ['V2', 'V8', 'V10']
+batch_size = {1: 10, 2:10, 3:10}[serial_no]
+sequence_length = {1: 10, 2: 10, 3:20}[serial_no]
+
 print("Loading 'train_db'--------------------------------------------------------------------")
-batch_size = 10
-sequence_length=sequence_length = 10
-
 train_db = create_data_loader('./Data/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+print("Loading 'test_db'---------------------------------------------------------------------")
 test_db = create_data_loader('./Data/data_test', input_cols, sequence_length=sequence_length, batch_size=batch_size)
-#validation_db = create_data_loader('./Data/data_validation', input_cols, sequence_length=sequence_length, batch_size=batch_size)
 
-# 데이터 로더에서 하나의 배치를 가져와서 테스트해봄
-# data_iter = iter(train_db)
-# sample_data, sample_label = next(data_iter)
-# sample_data  : torch.size([2, 10, 3])
-# sample_label : torch.size([2, 1])
-
-num_classes = 4  # 라벨 수
+output_dim = 4
 hidden_dim = 64
-output_dim = num_classes
 model = TimeSeriesCNN(len(input_cols), hidden_dim, output_dim)
 
-# check_gpu_usage()
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# model.to(device)
-
-trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db)
+trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db, save_path=f'./CNN', 
+                       serial_no=serial_no, batch_size=batch_size, sequence_length=sequence_length)
 trainer.train_model(num_epochs=100, learning_rate=0.001)
-
-serial_no = 2
-model_path = f'./CNN/CNN{serial_no}'
-if not os.path.exists(model_path):
-    os.makedirs(model_path)
-trainer.save_model(model_path=f'{model_path}/model.pth')
-
-plot_path = f'./CNN/training_result/CNN{serial_no}.png'
-if not os.path.exists(os.path.dirname(plot_path)):
-    os.makedirs(os.path.dirname(plot_path))
-trainer.plot_history(save_path=plot_path)
