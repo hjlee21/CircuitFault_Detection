@@ -15,15 +15,18 @@ def create_data_loader(data_folder, input_cols, sequence_length=10, batch_size=1
     return data_loader
 
 class TimeSeriesCNN(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim):
+    def __init__(self, input_dim, hidden_dim, output_dim, serial_no, sequence_length):
         super(TimeSeriesCNN, self).__init__()
-        self.hidden_dim = hidden_dim
+        self.serial_no = serial_no
+        hidden_dim = {10:64, 20:160, 30:224, 40:320, 50:384}[sequence_length]
+        
         self.conv1 = nn.Conv1d(in_channels=input_dim, out_channels=16, kernel_size=3, padding=1)
         self.conv2 = nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
         self.pool = nn.MaxPool1d(kernel_size=2, stride=2)
-        self.fc1 = nn.Linear(64, hidden_dim)  # Adjust input size according to the final feature map size
+        self.fc1 = nn.Linear(hidden_dim, 64)  # Adjust input size according to the final feature map size
         # setup output layer
-        self.fc = nn.Linear(self.hidden_dim, output_dim)
+        self.fc = nn.Linear(64, output_dim)
+        
         check_gpu_usage()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.to(self.device)
@@ -168,7 +171,7 @@ class ModelTrainer:
         val_acc = correct / total
         return val_loss, val_acc
     
-    def plot_history(self):
+    def plot_history(self, save_path):
         plt.figure(figsize=(12,4))
 
         plt.subplot(1,2,1)
@@ -192,8 +195,8 @@ class ModelTrainer:
         plt.legend()
         plt.title('Training and Validation Loss')
 
-        if self.save_path:
-            plt.savefig(self.save_path)
+        if save_path:
+            plt.savefig(save_path)
 
         plt.show()
     
@@ -212,18 +215,24 @@ def check_gpu_usage():
 # ===========================================================================================
 serial_no = 1
 input_cols = ['V2', 'V8', 'V10']
-batch_size = {1: 10, 2:10, 3:10}[serial_no]
-sequence_length = {1: 10, 2: 10, 3:20}[serial_no]
 
-print("Loading 'train_db'--------------------------------------------------------------------")
-train_db = create_data_loader('./Data/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
-print("Loading 'test_db'---------------------------------------------------------------------")
-test_db = create_data_loader('./Data/data_test', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+for serial_no in range(1, 10):
+    batch_size = {1:10, 2:10, 3:10, 4:10, 5:10, 6:20, 7:20, 8:20, 9:20, 10:20}[serial_no]
+    sequence_length = {1: 50, 2: 20, 3:30, 4:40, 5:50, 6: 10, 7: 20, 8:30, 9:40, 10:50}[serial_no]
 
-output_dim = 4
-hidden_dim = 64
-model = TimeSeriesCNN(len(input_cols), hidden_dim, output_dim)
+    print("Loading 'train_db'--------------------------------------------------------------------")
+    train_db = create_data_loader('./Data/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+    print("Loading 'test_db'---------------------------------------------------------------------")
+    test_db = create_data_loader('./Data/data_test', input_cols, sequence_length=sequence_length, batch_size=batch_size)
 
-trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db, save_path=f'./CNN', 
-                       serial_no=serial_no, batch_size=batch_size, sequence_length=sequence_length)
-trainer.train_model(num_epochs=100, learning_rate=0.001)
+    output_dim = 4
+    hidden_dim = 64
+    model = TimeSeriesCNN(len(input_cols), hidden_dim, output_dim, serial_no, sequence_length)
+
+    trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db, save_path=f'./CNN', 
+                        serial_no=serial_no, batch_size=batch_size, sequence_length=sequence_length)
+    trainer.train_model(num_epochs=100, learning_rate=0.001)
+    
+    del model
+    torch.cuda.empty_cache()
+    
