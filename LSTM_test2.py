@@ -194,7 +194,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
 trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db)
-trainer.train_model(num_epochs=50, learning_rate=0.001)
+trainer.train_model(num_epochs=100, learning_rate=0.001)
 
 serial_no = 1
 model_path = f'./LSTM/lstm{serial_no}'
