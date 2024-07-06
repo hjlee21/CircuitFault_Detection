@@ -168,9 +168,9 @@ def check_gpu_usage():
 # ===========================================================================================
 input_cols = ['V2', 'V8', 'V10']
 print("Loading 'train_db'--------------------------------------------------------------------")
-train_db = create_data_loader('./Data/data_training', input_cols, sequence_length=10, batch_size=10)
+train_db = create_data_loader('./Data/data_training', input_cols, sequence_length=20, batch_size=10)
 print("Loading 'test_db'---------------------------------------------------------------------")
-test_db = create_data_loader('./Data/data_test', input_cols, sequence_length=10, batch_size=10)
+test_db = create_data_loader('./Data/data_test', input_cols, sequence_length=20, batch_size=10)
 # print("Loading 'validation_db'---------------------------------------------------------------")
 # validation_db = create_data_loader('./Data/data_validation', input_cols, sequence_length=10, batch_size=10)
 
@@ -192,9 +192,9 @@ model = LSTM_Model(input_dim, hidden_dim, output_dim, num_layers)
 # model.to(device)
 
 trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db)
-trainer.train_model(num_epochs=100, learning_rate=0.001)
+trainer.train_model(num_epochs=50, learning_rate=0.001)
 
-serial_no = 1
+serial_no = 2
 model_path = f'./LSTM/lstm{serial_no}'
 if not os.path.exists(model_path):
     os.makedirs(model_path)
