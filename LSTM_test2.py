@@ -19,6 +19,7 @@ class LSTM_Model(nn.Module):
         super(LSTM_Model, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
+        self.serial_no = serial_no
 
         # setup LSTM layer
         self.lstm = nn.LSTM(input_dim, self.hidden_dim, self.num_layers, batch_first = True)
@@ -26,8 +27,10 @@ class LSTM_Model(nn.Module):
         # batch_first = False -> (sequence_length, batch_size, input_dim)
 
         # setup output layer
+        
         self.fc = nn.Linear(self.hidden_dim, output_dim)
-        check_gpu_usage()
+        
+        
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.to(self.device)
 
@@ -61,11 +64,11 @@ class ModelTrainer:
 
     def train_model(self, num_epochs = 50, learning_rate = 0.001):
         # Model Save
-        model_path = f'{self.save_path}/CNN{self.serial_no}'
+        model_path = f'{self.save_path}/LSTM{self.serial_no}'
         if not os.path.exists(model_path):
             os.makedirs(model_path)
         # Result PNG
-        plot_path = f'{self.save_path}/training_result/CNN{self.serial_no}.png'
+        plot_path = f'{self.save_path}/training_result/LSTM{self.serial_no}.png'
         if not os.path.exists(os.path.dirname(plot_path)):
             os.makedirs(os.path.dirname(plot_path))
         
@@ -126,20 +129,20 @@ class ModelTrainer:
         
     def log_training_history(self, new=False, Epoch=0, epoch_loss=0, epoch_acc=0, val_loss=0, val_acc=0):
         if new:
-            with open(f'{self.save_path}/training_result/CNN{self.serial_no}_training_history.txt', 'w') as f:
+            with open(f'{self.save_path}/training_result/LSTM{self.serial_no}_training_history.txt', 'w') as f:
                 if self.val_db:
                     f.write(f'Epoch,epoch_loss,epoch_acc,val_loss,val_acc\n')
                 else:
                     f.write(f'Epoch,epoch_loss,epoch_acc\n')
         else:
-            with open(f'{self.save_path}/training_result/CNN{self.serial_no}_training_history.txt', 'a') as f:
+            with open(f'{self.save_path}/training_result/LSTM{self.serial_no}_training_history.txt', 'a') as f:
                 if self.val_db:
                     f.write(f'{Epoch},{epoch_loss},{epoch_acc},{val_loss},{val_acc}\n')
                 else:
                     f.write(f'{Epoch},{epoch_loss},{epoch_acc}\n')
 
     def log_training_info(self, serial_no, batch_size, sequence_length, num_epochs, learning_rate):
-        with open(f'{self.save_path}/training_result/CNN{self.serial_no}_training_info.txt', 'w') as f:
+        with open(f'{self.save_path}/training_result/LSTM{self.serial_no}_training_info.txt', 'w') as f:
             f.write(f'serial_no:{serial_no}\n')
             f.write(f'batch_size:{batch_size}\n')
             f.write(f'sequence_length:{sequence_length}\n')
@@ -170,7 +173,7 @@ class ModelTrainer:
         val_acc = correct / total
         return val_loss, val_acc
     
-    def plot_history(self):
+    def plot_history(self, save_path):
         plt.figure(figsize=(12,4))
 
         plt.subplot(1,2,1)
@@ -194,8 +197,8 @@ class ModelTrainer:
         plt.legend()
         plt.title('Training and Validation Loss')
 
-        if self.save_path:
-            plt.savefig(self.save_path)
+        if save_path:
+            plt.savefig(save_path)
 
         plt.show()
     
@@ -212,23 +215,43 @@ def check_gpu_usage():
 # ===========================================================================================
 # Run
 # ===========================================================================================
-serial_no = 1
 input_cols = ['V2', 'V8', 'V10']
-
-batch_size = {1: 10, 2:10, 3:10}[serial_no]
-sequence_length = {1: 10, 2: 10, 3:20}[serial_no]
-
-print("Loading 'train_db'--------------------------------------------------------------------")
-train_db = create_data_loader('./Data/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
-print("Loading 'test_db'---------------------------------------------------------------------")
-test_db = create_data_loader('./Data/data_test', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+batch_size = {1: 20, 2:20, 3:20, 
+              4: 40, 5: 40, 6: 40, 
+              7: 60, 8: 60, 9: 60, 
+              10:20, 11:20, 12:20}
+sequence_length = {1: 10, 2: 20, 3:30, 
+                   4: 10, 5: 20, 6:30, 
+                   7: 10, 8: 20, 9:30, 
+                   10: 10, 11: 20, 12:30}
+hidden_dim = {1: 128, 2:128, 3:128, 
+              4:128, 5:128, 6:128, 
+              7: 128, 8:128, 9:128, 
+              10:128, 11:128, 12:128}
+num_layers = {1: 1, 2:1, 3:1, 
+              4:1, 5:1, 6:1, 
+              7: 1, 8:1, 9:1, 
+              10:2, 11:2, 12:2}
 
 output_dim = 4
 input_dim = 3  # Number of features in the input sequence
-hidden_dim = 128
-num_layers = 1
-model = LSTM_Model(input_dim, hidden_dim, output_dim, num_layers)
 
-trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db, save_path=f'./LSTM', 
-                       serial_no=serial_no, batch_size=batch_size, sequence_length=sequence_length)
-trainer.train_model(num_epochs=50, learning_rate=0.001)
+
+for serial_no in range(1, len(batch_size)):
+    batch_size = batch_size[serial_no]
+    sequence_length = sequence_length[serial_no]
+    hidden_dim = hidden_dim[serial_no]
+
+    print("--------------------------------------------------------------------Loading 'train_db'")
+    train_db = create_data_loader('./Data/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+    print("---------------------------------------------------------------------Loading 'test_db'")
+    test_db = create_data_loader('./Data/data_test', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+
+    model = LSTM_Model(input_dim, hidden_dim, output_dim, num_layers)
+
+    trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db, save_path=f'./LSTM', 
+                        serial_no=serial_no, batch_size=batch_size, sequence_length=sequence_length)
+    trainer.train_model(num_epochs=50, learning_rate=0.001)
+    
+    del model
+    torch.cuda.empty_cache()
