@@ -55,7 +55,6 @@ class ModelTrainer:
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 
-
         for epoch in range(num_epochs):
             self.model.train()
             running_loss = 0.0
@@ -187,9 +186,9 @@ model = TimeSeriesCNN(len(input_cols), hidden_dim, output_dim)
 # model.to(device)
 
 trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db)
-trainer.train_model(num_epochs=50, learning_rate=0.001)
+trainer.train_model(num_epochs=100, learning_rate=0.001)
 
-serial_no = 1
+serial_no = 2
 model_path = f'./CNN/CNN{serial_no}'
 if not os.path.exists(model_path):
     os.makedirs(model_path)
