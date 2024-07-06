@@ -216,32 +216,25 @@ def check_gpu_usage():
 # Run
 # ===========================================================================================
 input_cols = ['V2', 'V8', 'V10']
-batch_size = {1: 20, 2:20, 3:20, 
-              4: 40, 5: 40, 6: 40, 
-              7: 60, 8: 60, 9: 60, 
-              10:20, 11:20, 12:20}
-sequence_length = {1: 10, 2: 20, 3:30, 
-                   4: 10, 5: 20, 6:30, 
-                   7: 10, 8: 20, 9:30, 
-                   10: 10, 11: 20, 12:30}
-hidden_dim = {1: 128, 2:128, 3:128, 
-              4:128, 5:128, 6:128, 
-              7: 128, 8:128, 9:128, 
-              10:128, 11:128, 12:128}
-num_layers = {1: 1, 2:1, 3:1, 
-              4:1, 5:1, 6:1, 
-              7: 1, 8:1, 9:1, 
-              10:2, 11:2, 12:2}
 
 output_dim = 4
 input_dim = 3  # Number of features in the input sequence
+hidden_dim = 128
 
-
-for serial_no in range(1, len(batch_size)):
-    batch_size = batch_size[serial_no]
-    sequence_length = sequence_length[serial_no]
-    hidden_dim = hidden_dim[serial_no]
-
+for serial_no in range(1, 13):
+    batch_size = {1: 20, 2:20, 3:20, 
+                  4: 40, 5: 40, 6: 40, 
+                  7: 60, 8: 60, 9: 60,
+                  10:20, 11:20, 12:20}[serial_no]
+    sequence_length = {1: 10, 2: 20, 3:30, 
+                       4: 10, 5: 20, 6:30, 
+                       7: 10, 8: 20, 9:30, 
+                       10: 10, 11: 20, 12:30}[serial_no]
+    num_layers = {1: 1, 2:1, 3:1, 
+                  4:1, 5:1, 6:1, 
+                  7: 1, 8:1, 9:1, 
+                  10:2, 11:2, 12:2}[serial_no]
+    
     print("--------------------------------------------------------------------Loading 'train_db'")
     train_db = create_data_loader('./Data/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
     print("---------------------------------------------------------------------Loading 'test_db'")
