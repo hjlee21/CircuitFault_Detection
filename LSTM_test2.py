@@ -200,7 +200,7 @@ class ModelTrainer:
         if save_path:
             plt.savefig(save_path)
 
-        plt.show()
+        # plt.show()
     
     def save_model(self, model_path):
         torch.save(self.model.state_dict(), model_path)
@@ -221,19 +221,22 @@ output_dim = 4
 input_dim = 3  # Number of features in the input sequence
 hidden_dim = 128
 
-for serial_no in range(1, 13):
+for serial_no in range(13, 14):
     batch_size = {1: 20, 2:20, 3:20, 
                   4: 40, 5: 40, 6: 40, 
                   7: 60, 8: 60, 9: 60,
-                  10:20, 11:20, 12:20}[serial_no]
+                  10:20, 11:20, 12:20,
+                  13:50}[serial_no]
     sequence_length = {1: 10, 2: 20, 3:30, 
                        4: 10, 5: 20, 6:30, 
                        7: 10, 8: 20, 9:30, 
-                       10: 10, 11: 20, 12:30}[serial_no]
+                       10: 10, 11: 20, 12:30,
+                       13: 5}[serial_no]
     num_layers = {1: 1, 2:1, 3:1, 
                   4:1, 5:1, 6:1, 
                   7: 1, 8:1, 9:1, 
-                  10:2, 11:2, 12:2}[serial_no]
+                  10:2, 11:2, 12:2,
+                  13: 1}[serial_no]
     
     print("--------------------------------------------------------------------Loading 'train_db'")
     train_db = create_data_loader('./Data/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
