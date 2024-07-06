@@ -58,9 +58,8 @@ class ModelTrainer:
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 
-        self.model.train()
-
         for epoch in range(num_epochs):
+            self.model.train()
             running_loss = 0.0
             correct = 0
             total = 0
@@ -123,7 +122,6 @@ class ModelTrainer:
 
         val_loss /= len(self.val_db)
         val_acc = correct / total
-        self.model.train()
         return val_loss, val_acc
     
     def plot_history(self, save_path=None):
@@ -189,9 +187,9 @@ output_dim = num_classes
 num_layers = 1
 model = LSTM_Model(input_dim, hidden_dim, output_dim, num_layers)
 
-check_gpu_usage()
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
+# check_gpu_usage()
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# model.to(device)
 
 trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db)
 trainer.train_model(num_epochs=50, learning_rate=0.001)
