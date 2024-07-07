@@ -157,9 +157,10 @@ class ModelTrainer:
     def log_validation_history(self, Epoch=0, se_file_name='', acc_result=[]):
         with open(f'{self.save_path}/training_result/CNNV2{self.serial_no}_validation_result.txt', 'a') as f:
             f.write(f'Epoch,{Epoch},se_file_name,{se_file_name},{acc_result}\n')
+            
     def evaluate_model(self, epoch):
         self.model.eval()
-        val_loss = 0.0
+        running_loss = 0.0
         correct = 0
         total = 0
         criterion = nn.CrossEntropyLoss()
@@ -173,7 +174,7 @@ class ModelTrainer:
                 labels = labels.squeeze(dim=0) if labels.size(0) == 1 else labels.squeeze()
                 loss = criterion(outputs, labels)
 
-                val_loss += loss.item()
+                running_loss += loss.item()
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
@@ -181,8 +182,7 @@ class ModelTrainer:
                 total_data_points += len(labels)
                 self.log_validation_history(epoch, se_file_name, predicted.tolist())
 
-        #val_loss /= len(self.val_db)
-        val_loss /= total_data_points
+        val_loss = running_loss / total_data_points
         val_acc = correct / total
         return val_loss, val_acc
     
