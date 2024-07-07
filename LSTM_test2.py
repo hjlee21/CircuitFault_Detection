@@ -239,13 +239,13 @@ for serial_no in range(13, 14):
                   13: 1}[serial_no]
     
     print("--------------------------------------------------------------------Loading 'train_db'")
-    train_db = create_data_loader('./Data/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+    train_db = create_data_loader('./Data_2/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
     print("---------------------------------------------------------------------Loading 'test_db'")
-    test_db = create_data_loader('./Data/data_test', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+    test_db = create_data_loader('./Data_2/data_test', input_cols, sequence_length=sequence_length, batch_size=batch_size)
 
     model = LSTM_Model(input_dim, hidden_dim, output_dim, num_layers)
 
-    trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db, save_path=f'./LSTM', 
+    trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db, save_path=f'./LSTM/Data_2', 
                         serial_no=serial_no, batch_size=batch_size, sequence_length=sequence_length)
     trainer.train_model(num_epochs=50, learning_rate=0.001)
     
