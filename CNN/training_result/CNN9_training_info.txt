@@ -1,0 +1,5 @@
+serial_no:9
+batch_size:20
+sequence_length:40
+num_epochs:100
+learning_rate:0.001

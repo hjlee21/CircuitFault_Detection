@@ -198,7 +198,7 @@ class ModelTrainer:
         if save_path:
             plt.savefig(save_path)
 
-        plt.show()
+        # plt.show()
     
     def save_model(self, model_path):
         torch.save(self.model.state_dict(), model_path)
