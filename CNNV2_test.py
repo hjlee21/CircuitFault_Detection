@@ -229,7 +229,7 @@ def check_gpu_usage():
 serial_no = 1
 input_cols = ['V2', 'V8', 'V10']
 
-for serial_no in range(1, 2):
+for serial_no in range(1, 11):
     batch_size = {1:10, 2:10, 3:10, 4:10, 5:10, 6:20, 7:20, 8:20, 9:20, 10:20}[serial_no]
     sequence_length = {1: 10, 2: 20, 3:30, 4:40, 5:50, 6: 10, 7: 20, 8:30, 9:40, 10:50}[serial_no]
 
