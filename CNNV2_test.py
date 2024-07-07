@@ -126,9 +126,9 @@ class ModelTrainer:
         trainer.save_model(model_path=f'{model_path}/model.pth')
         # Result PNG
         trainer.plot_history(save_path=plot_path)
-
+        
         print('Training Complete')
-    
+        
     def log_training_history(self, new=False, Epoch=0, epoch_loss=0, epoch_acc=0, val_loss=0, val_acc=0):
         if new:
             with open(f'{self.save_path}/training_result/CNNV2{self.serial_no}_training_history.txt', 'w') as f:
@@ -150,7 +150,7 @@ class ModelTrainer:
             f.write(f'sequence_length:{sequence_length}\n')
             f.write(f'num_epochs:{num_epochs}\n')
             f.write(f'learning_rate:{learning_rate}\n')
-    
+                
     def log_validation_history(self, Epoch=0, se_file_name='', acc_result=[]):
         with open(f'{self.save_path}/training_result/CNNV2{self.serial_no}_validation_result.txt', 'a') as f:
             f.write(f'Epoch,{Epoch},se_file_name,{se_file_name},{acc_result}\n')
@@ -234,10 +234,10 @@ for serial_no in range(1, 2):
     batch_size = {1:10, 2:10, 3:10, 4:10, 5:10, 6:20, 7:20, 8:20, 9:20, 10:20}[serial_no]
     sequence_length = {1: 10, 2: 20, 3:30, 4:40, 5:50, 6: 10, 7: 20, 8:30, 9:40, 10:50}[serial_no]
 
-    print("Loading 'train_db'--------------------------------------------------------------------")
-    train_db = create_data_loader('./Data_2/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
-    print("Loading 'test_db'---------------------------------------------------------------------")
-    test_db = ValidationData('./Data_2/data_test', input_cols, sequence_length=sequence_length)
+    print("--------------------------------------------------------------------Loading 'train_db'")
+    train_db = create_data_loader('./Data_3/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+    print("---------------------------------------------------------------------Loading 'test_db'")
+    test_db = ValidationData('./Data_3/data_test', input_cols, sequence_length=sequence_length)
 
     output_dim = 4
     hidden_dim = 64
@@ -254,4 +254,3 @@ for serial_no in range(1, 2):
     
     del model
     torch.cuda.empty_cache()
-    

@@ -1,4 +1,5 @@
 import os
+import time
 import numpy as np
 import pandas as pd
 import torch
@@ -6,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
-from CustomDataset import CustomDataset
+from CustomDataset import CustomDataset, ValidationData
 from torch.utils.data import Dataset, DataLoader
 
 def create_data_loader(data_folder, input_cols, sequence_length=10, batch_size=10, shuffle=True):
@@ -72,10 +73,13 @@ class ModelTrainer:
         if not os.path.exists(os.path.dirname(plot_path)):
             os.makedirs(os.path.dirname(plot_path))
         
+        self.log_training_info(self.serial_no, self.batch_size, self.sequence_length, num_epochs, learning_rate)
+        self.log_training_history(new=True)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 
         for epoch in range(num_epochs):
+            start_time = time.time()  # 에포크 시작 시간 기록
             self.model.train()
             running_loss = 0.0
             correct = 0
@@ -106,13 +110,14 @@ class ModelTrainer:
             self.history['accuracy'].append(epoch_acc)
 
             if self.val_db:
-                val_loss, val_acc = self.evaluate_model()
+                val_loss, val_acc = self.evaluate_model(epoch)
                 self.history['val_loss'].append(val_loss)
                 self.history['val_accuracy'].append(val_acc)
                 
             Epoch = f'[{epoch+1} / {num_epochs}]'
+            epoch_time = time.time() - start_time  # 에포크 소요 시간 계산
             
-            print(f'Epoch {Epoch},   Loss: {epoch_loss:.4f},    Accuracy: {epoch_acc:.4f}')
+            print(f'Epoch {Epoch},   Loss: {epoch_loss:.4f},    Accuracy: {epoch_acc:.4f},    Time: {epoch_time:.2f} seconds')
 
             if self.val_db:
                 print(f'Validation Loss: {val_loss:.4f}, Validation Accuracy: {val_acc:.4f}')
@@ -148,17 +153,21 @@ class ModelTrainer:
             f.write(f'sequence_length:{sequence_length}\n')
             f.write(f'num_epochs:{num_epochs}\n')
             f.write(f'learning_rate:{learning_rate}\n')
-            
-    def evaluate_model(self):
+                
+    def log_validation_history(self, Epoch=0, se_file_name='', acc_result=[]):
+        with open(f'{self.save_path}/training_result/CNNV2{self.serial_no}_validation_result.txt', 'a') as f:
+            f.write(f'Epoch,{Epoch},se_file_name,{se_file_name},{acc_result}\n')
+    def evaluate_model(self, epoch):
         self.model.eval()
         val_loss = 0.0
         correct = 0
         total = 0
         criterion = nn.CrossEntropyLoss()
-
+        total_data_points = 0
         with torch.no_grad():
-            for inputs, labels in self.val_db:
-                inputs, labels = inputs.to(self.model.device), labels.to(self.model.device)
+            for se_file_name in self.val_db.keys():
+                data_, label_ = test_db.get_se(se_file_name)
+                inputs, labels = data_.to(self.model.device), label_.to(self.model.device)
                 outputs = self.model(inputs)
                 # labels = labels.squeeze()
                 labels = labels.squeeze(dim=0) if labels.size(0) == 1 else labels.squeeze()
@@ -168,8 +177,12 @@ class ModelTrainer:
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
+                
+                total_data_points += len(labels)
+                self.log_validation_history(epoch, se_file_name, predicted.tolist())
 
-        val_loss /= len(self.val_db)
+        #val_loss /= len(self.val_db)
+        val_loss /= total_data_points
         val_acc = correct / total
         return val_loss, val_acc
     
@@ -239,13 +252,13 @@ for serial_no in range(1, 13):
                   13: 1}[serial_no]
     
     print("--------------------------------------------------------------------Loading 'train_db'")
-    train_db = create_data_loader('./Data_2/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+    train_db = create_data_loader('./Data_3/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
     print("---------------------------------------------------------------------Loading 'test_db'")
-    test_db = create_data_loader('./Data_2/data_test', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+    test_db = ValidationData('./Data_3/data_test', input_cols, sequence_length=sequence_length)
 
     model = LSTM_Model(input_dim, hidden_dim, output_dim, num_layers)
 
-    trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db, save_path=f'./LSTM/Data_2', 
+    trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db, save_path=f'./LSTM/Data_3', 
                         serial_no=serial_no, batch_size=batch_size, sequence_length=sequence_length)
     trainer.train_model(num_epochs=50, learning_rate=0.001)
     
