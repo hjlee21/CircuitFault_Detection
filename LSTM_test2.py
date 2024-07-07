@@ -182,7 +182,7 @@ class ModelTrainer:
                 total_data_points += len(labels)
                 self.log_validation_history(epoch, se_file_name, predicted.tolist())
 
-        val_loss = running_loss / total_data_points
+        val_loss = running_loss / len(self.val_db.keys())
         val_acc = correct / total
         return val_loss, val_acc
     
