@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
-from CustomDataset import CustomDataset
+from CustomDataset import CustomDataset, ValidationData
 from torch.utils.data import Dataset, DataLoader
 
 def create_data_loader(data_folder, input_cols, sequence_length=10, batch_size=10, shuffle=True):
@@ -107,7 +107,7 @@ class ModelTrainer:
             self.history['accuracy'].append(epoch_acc)
 
             if self.val_db:
-                val_loss, val_acc = self.evaluate_model()
+                val_loss, val_acc = self.evaluate_model(epoch)
                 self.history['val_loss'].append(val_loss)
                 self.history['val_accuracy'].append(val_acc)
 
@@ -151,16 +151,21 @@ class ModelTrainer:
             f.write(f'num_epochs:{num_epochs}\n')
             f.write(f'learning_rate:{learning_rate}\n')
     
-    def evaluate_model(self):
+    def log_validation_history(self, Epoch=0, se_file_name='', acc_result=[]):
+        with open(f'{self.save_path}/training_result/CNNV2{self.serial_no}_validation_result.txt', 'a') as f:
+            f.write(f'Epoch,{Epoch},se_file_name,{se_file_name},{acc_result}\n')
+    
+    def evaluate_model(self, epoch):
         self.model.eval()
         val_loss = 0.0
         correct = 0
         total = 0
         criterion = nn.CrossEntropyLoss()
-            
+        total_data_points = 0
         with torch.no_grad():
-            for inputs, labels in self.val_db:
-                inputs, labels = inputs.to(self.model.device), labels.to(self.model.device)
+            for se_file_name in self.val_db.keys():
+                data_, label_ = test_db.get_se(se_file_name)
+                inputs, labels = data_.to(self.model.device), label_.to(self.model.device)
                 inputs = inputs.permute(0, 2, 1)
                 outputs = self.model(inputs)
                 # labels = labels.squeeze()
@@ -171,8 +176,12 @@ class ModelTrainer:
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
+                
+                total_data_points += len(labels)
+                self.log_validation_history(epoch, se_file_name, predicted.tolist())
 
-        val_loss /= len(self.val_db)
+        #val_loss /= len(self.val_db)
+        val_loss /= total_data_points
         val_acc = correct / total
         return val_loss, val_acc
     
@@ -223,16 +232,21 @@ input_cols = ['V2', 'V8', 'V10']
 
 for serial_no in range(1, 2):
     batch_size = {1:10, 2:10, 3:10, 4:10, 5:10, 6:20, 7:20, 8:20, 9:20, 10:20}[serial_no]
-    sequence_length = {1: 50, 2: 20, 3:30, 4:40, 5:50, 6: 10, 7: 20, 8:30, 9:40, 10:50}[serial_no]
+    sequence_length = {1: 10, 2: 20, 3:30, 4:40, 5:50, 6: 10, 7: 20, 8:30, 9:40, 10:50}[serial_no]
 
     print("Loading 'train_db'--------------------------------------------------------------------")
-    train_db = create_data_loader('./Data/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+    train_db = create_data_loader('./Data_2/data_training', input_cols, sequence_length=sequence_length, batch_size=batch_size)
     print("Loading 'test_db'---------------------------------------------------------------------")
-    test_db = create_data_loader('./Data/data_test', input_cols, sequence_length=sequence_length, batch_size=batch_size)
+    test_db = ValidationData('./Data_2/data_test', input_cols, sequence_length=sequence_length)
 
     output_dim = 4
     hidden_dim = 64
     model = TimeSeriesCNN(len(input_cols), hidden_dim, output_dim, serial_no, sequence_length)
+    
+    # data_, label_ = test_db.get_se(test_db.keys()[0])
+    # inputs, labels = data_.to(model.device), label_.to(model.device)
+    # inputs = inputs.permute(0, 2, 1)
+    # out = model(inputs)
 
     trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db, save_path=f'./CNNV2', 
                         serial_no=serial_no, batch_size=batch_size, sequence_length=sequence_length)

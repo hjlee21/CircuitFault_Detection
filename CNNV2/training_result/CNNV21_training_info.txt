@@ -1,5 +1,5 @@
 serial_no:1
 batch_size:10
-sequence_length:50
+sequence_length:10
 num_epochs:100
 learning_rate:0.001
