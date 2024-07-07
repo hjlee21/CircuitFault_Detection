@@ -221,7 +221,7 @@ output_dim = 4
 input_dim = 3  # Number of features in the input sequence
 hidden_dim = 128
 
-for serial_no in range(13, 14):
+for serial_no in range(1, 13):
     batch_size = {1: 20, 2:20, 3:20, 
                   4: 40, 5: 40, 6: 40, 
                   7: 60, 8: 60, 9: 60,

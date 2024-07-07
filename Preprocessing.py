@@ -58,19 +58,19 @@ class DataframeProcessor:
             print(f'{filename} lebeled successfully')
 
 # ================================================================= Define directory
-dir_path1 = './Data_2/data/'
+dir_path1 = './Data_3/data/'
 os.makedirs(os.path.dirname(dir_path1)) if not os.path.exists(os.path.dirname(dir_path1)) else dir_path1
 
-dir_path2 = './Data_2/data_pd/'
+dir_path2 = './Data_3/data_pd/'
 os.makedirs(os.path.dirname(dir_path2)) if not os.path.exists(os.path.dirname(dir_path2)) else dir_path2
 
-dir_path3 = './Data_2/data_pd_minmax/'
+dir_path3 = './Data_3/data_pd_minmax/'
 os.makedirs(os.path.dirname(dir_path3)) if not os.path.exists(os.path.dirname(dir_path3)) else dir_path3
 
-dir_save1 = './Data_2/data_pd/'
+dir_save1 = './Data_3/data_pd/'
 os.makedirs(os.path.dirname(dir_save1)) if not os.path.exists(os.path.dirname(dir_save1)) else dir_save1
 
-dir_save2 = './Data_2/data_pd_minmax/'
+dir_save2 = './Data_3/data_pd_minmax/'
 os.makedirs(os.path.dirname(dir_save2)) if not os.path.exists(os.path.dirname(dir_save2)) else dir_save2
 
 # ================================================================= data processing 1
