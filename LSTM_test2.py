@@ -234,7 +234,7 @@ output_dim = 4
 input_dim = 3  # Number of features in the input sequence
 hidden_dim = 128
 
-for serial_no in range(1, 13):
+for serial_no in range(1, 14):
     batch_size = {1: 20, 2:20, 3:20, 
                   4: 40, 5: 40, 6: 40, 
                   7: 60, 8: 60, 9: 60,
@@ -260,7 +260,7 @@ for serial_no in range(1, 13):
 
     trainer = ModelTrainer(model=model, train_db=train_db, val_db=test_db, save_path=f'./LSTM/Data_3', 
                         serial_no=serial_no, batch_size=batch_size, sequence_length=sequence_length)
-    trainer.train_model(num_epochs=50, learning_rate=0.001)
+    trainer.train_model(num_epochs=100, learning_rate=0.001)
     
     del model
     torch.cuda.empty_cache()
