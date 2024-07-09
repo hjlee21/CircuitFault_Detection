@@ -5,11 +5,12 @@ import matplotlib.pyplot as plt
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 x_train = tf.random.normal(shape = (100, 1), dtype = tf.float32)
+# x_train = tf.random.uniform(shape = (100, 1), maxval=10, minval=0, dtype = tf.float32)
 y_train = tf.math.sin(2 * math.pi * x_train) / (2 * math.pi) + 1
 
 model = tf.keras.Sequential([
     tf.keras.layers.Dense(units=32, activation='relu', input_shape=(1,)),
-    # tf.keras.layers.Dense(units=64, activation='relu'),
+    tf.keras.layers.Dense(units=64, activation='relu'),
     tf.keras.layers.Dense(units=1)
 ])
 
